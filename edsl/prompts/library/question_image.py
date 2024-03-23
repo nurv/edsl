@@ -22,5 +22,10 @@ class Image(QuestionInstuctionsBase):
             Return a valid JSON formatted like this:
             {"answer": "<put free text answer here>"}
         {% endif %}
+        ###image-links###
+        {% for image_link in question_images %}
+            {{image_link}}
+        {% endfor %}
+        ###image-links###
         """
     )

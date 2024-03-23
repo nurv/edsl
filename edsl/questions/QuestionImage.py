@@ -33,9 +33,11 @@ class QuestionImage(Question):
     This question asks the respondent to extract values from a string, and return them in a given template.
 
     """
+    question_type = "image"
+
     question_options: list[str] = AnyDescriptor()
     sub_type: str = AnyDescriptor()
-    question_type = "image"
+    question_images: list[str] = AnyDescriptor()
 
     def __init__(
         self,
@@ -91,15 +93,19 @@ class QuestionImage(Question):
 
 
 def main():
-    """Administer a question and validate the answer."""
-    from edsl.questions.QuestionImage import QuestionImage
+    from edsl.questions import QuestionImage
     from edsl import Model
-    q = QuestionImage.example()
-    print("here")
-
-    models = [Model("gpt-4-vision-preview")]
-
-    res = q.by(models).run()
+    q1 = QuestionImage(
+        question_name="image",
+        question_text="Give me a slogan for each image",
+        question_images=[
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTNiMdOiJoRIereQ4fb6rNsgPngPNyqvYWSBrIDcSbCCg&s",
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTEB8lb6UtOE7szUxVEFKbs1PG2z5uJUiBlypJn4xE_1A&s",
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQpTotNcLz_n1qOO0rqQsADyt5uaAzFsK6FtBZewTybgw&s",
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQl-W4lpydB5z8EhifIo_NcjQW2W_etUHbcGF9-7Cw_HA&s"]
+    )
+    model = Model("gpt-4-vision-preview")
+    res  = q1.by(model).run()
     print(res)
 
 if __name__ == "__main__":
