@@ -5,6 +5,15 @@ from edsl import CONFIG
 from openai import AsyncOpenAI
 from edsl.enums import LanguageModelType, InferenceServiceType
 from edsl.language_models import LanguageModel
+import re
+
+def extract_image_links(text):
+    pattern = r'###image-links###\s*([\s\S]*?)\s*###image-links###'
+    matches = re.findall(pattern, text)
+    return [url.strip() for url in matches[0].split('\n') if url.strip()]
+def remove_image_sections(text):
+    pattern = r'###image-links###\s*([\s\S]*?)\s*###image-links###'
+    return re.sub(pattern, '', text)
 
 LanguageModelType.GPT_4.value
 
@@ -57,7 +66,6 @@ def create_openai_model(model_name, model_class_name) -> LanguageModel:
                     "rpm": int(headers["x-ratelimit-limit-requests"]),
                     "tpm": int(headers["x-ratelimit-limit-tokens"]),
                 }
-
         async def async_execute_model_call(
             self, user_prompt: str, system_prompt: str = ""
         ) -> dict[str, Any]:
@@ -65,46 +73,39 @@ def create_openai_model(model_name, model_class_name) -> LanguageModel:
             with open("test.txt","w") as f:
                 f.write(self._model_)
                 f.close()
-            try:
-                if self.model == "gpt-4-vision-preview":
-                    messages=[
+            if self.model == "gpt-4-vision-preview":
+                image_links = extract_image_links(user_prompt)
+                user_prompt = remove_image_sections(user_prompt)
+                messages = [{
+                    "role": "user",
+                    "content": [
                         {
-                        "role": "user",
-                        "content": [
-                            {
                             "type": "text",
                             "text": user_prompt,
-                            },
+                        },
+                        # Add image URLs to the content
+                        *[
                             {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": "https://media.cnn.com/api/v1/images/stellar/prod/141111134114-01-obama-asia-1111.jpg?q=w_3242,h_2440,x_0,y_0,c_fill",
-                            },
-                            },
-                        ],
-                        }
+                                "type": "image_url",
+                                "image_url": {"url": url}
+                            } for url in image_links
+                        ]
                     ]
-                else:
-                    messages=[
-                        {"role": "system", "content": system_prompt},
-                        {"role": "user", "content": user_prompt},
-                    ]
-                response = await self.client.chat.completions.create(
-                    model=self.model,
-                    messages=messages,
-                    temperature=self.temperature,
-                    max_tokens=self.max_tokens,
-                    top_p=self.top_p,
-                    frequency_penalty=self.frequency_penalty,
-                    presence_penalty=self.presence_penalty,
-                )
-            except Exception as e:
-                with open("test1.txt","w") as f:
-                    f.write(user_prompt)
-                    f.close()
-            with open("test.txt2","w") as f:
-                f.write(user_prompt)
-                f.close() 
+                }]
+            else:
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ]
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty,
+            )
             return response.model_dump()
 
         @staticmethod
