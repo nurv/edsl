@@ -13,6 +13,11 @@ pricing = {
         prompt_token_price_per_k=0.01,
         completion_token_price_per_k=0.03,
     ),
+    "gpt-4-vision-preview": TokenPricing(
+        model_name="gpt-4-vision-preview",
+        prompt_token_price_per_k=0.01,
+        completion_token_price_per_k=0.03,
+    ),
     "test": TokenPricing(
         model_name="test",
         prompt_token_price_per_k=0.0,

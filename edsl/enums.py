@@ -27,6 +27,7 @@ class QuestionType(EnumWithChecks):
     TOP_K = "top_k"
     LIKERT_FIVE = "likert_five"
     LINEAR_SCALE = "linear_scale"
+    IMAGE = "image"
 
 
 # https://huggingface.co/meta-llama/Llama-2-70b-chat-hf
@@ -34,7 +35,7 @@ class QuestionType(EnumWithChecks):
 
 class LanguageModelType(EnumWithChecks):
     """Enum for the language model types."""
-
+    GPT_4_VISION="gpt-4-vision-preview"
     GPT_4 = "gpt-4-1106-preview"
     GPT_3_5_Turbo = "gpt-3.5-turbo"
     LLAMA_2_70B_CHAT_HF = "llama-2-70b-chat-hf"

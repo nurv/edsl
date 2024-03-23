@@ -344,3 +344,11 @@ class ShortNamesDictDescriptor(BaseDescriptor):
             raise QuestionCreationValidationError(
                 f"Short names dictionary values must be strings (got {value})."
             )
+
+
+class AnyDescriptor(BaseDescriptor):
+    """Validate any value."""
+
+    def validate(self, value, instance):
+        """Validate any value."""
+        pass

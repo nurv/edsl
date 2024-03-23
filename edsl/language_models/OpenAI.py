@@ -62,18 +62,49 @@ def create_openai_model(model_name, model_class_name) -> LanguageModel:
             self, user_prompt: str, system_prompt: str = ""
         ) -> dict[str, Any]:
             """Calls the OpenAI API and returns the API response."""
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                top_p=self.top_p,
-                frequency_penalty=self.frequency_penalty,
-                presence_penalty=self.presence_penalty,
-            )
+            with open("test.txt","w") as f:
+                f.write(self._model_)
+                f.close()
+            try:
+                if self.model == "gpt-4-vision-preview":
+                    messages=[
+                        {
+                        "role": "user",
+                        "content": [
+                            {
+                            "type": "text",
+                            "text": user_prompt,
+                            },
+                            {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": "https://media.cnn.com/api/v1/images/stellar/prod/141111134114-01-obama-asia-1111.jpg?q=w_3242,h_2440,x_0,y_0,c_fill",
+                            },
+                            },
+                        ],
+                        }
+                    ]
+                else:
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ]
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=self.temperature,
+                    max_tokens=self.max_tokens,
+                    top_p=self.top_p,
+                    frequency_penalty=self.frequency_penalty,
+                    presence_penalty=self.presence_penalty,
+                )
+            except Exception as e:
+                with open("test1.txt","w") as f:
+                    f.write(user_prompt)
+                    f.close()
+            with open("test.txt2","w") as f:
+                f.write(user_prompt)
+                f.close() 
             return response.model_dump()
 
         @staticmethod
@@ -96,3 +127,6 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
+
+               
+    
