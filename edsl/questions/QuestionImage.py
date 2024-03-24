@@ -87,8 +87,8 @@ class QuestionImage(Question):
     def example(cls) -> QuestionImage:
         """Return an example question."""
         return cls(
-            question_name="image_test2",
-            question_text="2.Whould you visit this plance and why?",
+            question_name="image",
+            question_text="Whould you visit this plance and why?",
             question_images=[
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
             ],
