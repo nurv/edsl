@@ -20,7 +20,7 @@ class Image(QuestionInstuctionsBase):
             {"answer": [<put comma-separated list of answer codes here>], "comment": "<put explanation here>"}
         {% else %}
             Return a valid JSON formatted like this:
-            {"answer": "<put free text answer here>"}
+            {"answer": "<put entire answer here>","comment": "<put explanation here>"}
         {% endif %}
         ###image-links###
         {% for image_link in question_images %}

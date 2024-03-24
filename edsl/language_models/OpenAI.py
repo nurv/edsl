@@ -7,13 +7,17 @@ from edsl.enums import LanguageModelType, InferenceServiceType
 from edsl.language_models import LanguageModel
 import re
 
+
 def extract_image_links(text):
-    pattern = r'###image-links###\s*([\s\S]*?)\s*###image-links###'
+    pattern = r"###image-links###\s*([\s\S]*?)\s*###image-links###"
     matches = re.findall(pattern, text)
-    return [url.strip() for url in matches[0].split('\n') if url.strip()]
+    return [url.strip() for url in matches[0].split("\n") if url.strip()]
+
+
 def remove_image_sections(text):
-    pattern = r'###image-links###\s*([\s\S]*?)\s*###image-links###'
-    return re.sub(pattern, '', text)
+    pattern = r"###image-links###\s*([\s\S]*?)\s*###image-links###"
+    return re.sub(pattern, "", text)
+
 
 LanguageModelType.GPT_4.value
 
@@ -66,34 +70,36 @@ def create_openai_model(model_name, model_class_name) -> LanguageModel:
                     "rpm": int(headers["x-ratelimit-limit-requests"]),
                     "tpm": int(headers["x-ratelimit-limit-tokens"]),
                 }
+
         async def async_execute_model_call(
             self, user_prompt: str, system_prompt: str = ""
         ) -> dict[str, Any]:
             """Calls the OpenAI API and returns the API response."""
-            with open("test.txt","w") as f:
-                f.write(self._model_)
-                f.close()
-            if self.model == "gpt-4-vision-preview":
+            if (
+                self.model == "gpt-4-vision-preview"
+                or "###image-links###" in user_prompt
+            ):
+                self.model = "gpt-4-vision-preview"
                 image_links = extract_image_links(user_prompt)
                 user_prompt = remove_image_sections(user_prompt)
-                messages = [{
-                    "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": user_prompt,
-                        },
-                        # Add image URLs to the content
-                        *[
+                messages = [
+                    {
+                        "role": "user",
+                        "content": [
                             {
-                                "type": "image_url",
-                                "image_url": {"url": url}
-                            } for url in image_links
-                        ]
-                    ]
-                }]
+                                "type": "text",
+                                "text": user_prompt,
+                            },
+                            # Add image URLs to the content
+                            *[
+                                {"type": "image_url", "image_url": {"url": url}}
+                                for url in image_links
+                            ],
+                        ],
+                    }
+                ]
             else:
-                messages=[
+                messages = [
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt},
                 ]
@@ -128,6 +134,3 @@ if __name__ == "__main__":
     import doctest
 
     doctest.testmod()
-
-               
-    
