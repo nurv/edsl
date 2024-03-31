@@ -22,13 +22,13 @@ from __future__ import annotations
 import re
 import json
 from typing import Any
-from edsl.questions import Question
+from edsl.questions.QuestionBase import QuestionBase
 from edsl.questions.descriptors import AnyDescriptor
 from edsl.scenarios import Scenario
 from edsl.utilities import random_string
 
 
-class QuestionImage(Question):
+class QuestionImage(QuestionBase):
     """
     This question asks the respondent to extract values from a string, and return them in a given template.
 
