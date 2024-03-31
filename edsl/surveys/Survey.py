@@ -1,154 +1,4 @@
-"""A Survey is collection of questions that can be administered to an Agent.
-
-Constructing a Survey
----------------------
-Key steps:
-
-* Create questions
-* Add questions to a survey
-* Run the survey by sending it to an LLM
-
-Before running the survey you can optionally:
-
-* Add personas for AI agents that will respond to the survey
-* Add rules and special logic (e.g., skip logic or memory of prior responses) (by default, questions are delivered asynchronously)
-* Add values for parameterized questions (Scenario objects) 
-* Specify the language models that will be used to answer the questions (the default model is GPT 4)
-
-A survey can also be sent to Googe Forms, Survey Monkey, LimeSurvey and other survey 
-platforms. 
-
-Defining questions
-^^^^^^^^^^^^^^^^^^
-Questions can be defined as various types, including multiple choice, checkbox, free text, linear scale, numerical and other types.
-The formats are defined in the `questions` module. Here we define some questions: 
-
-.. code-block:: python
-
-    from edsl.questions import QuestionMultipleChoice, 
-    QuestionNumerical, QuestionFreeText
-
-    q1 = QuestionMultipleChoice(
-        question_name = "student",
-        question_text = "Are you a student?",
-        question_options = ["yes", "no"]
-    )
-    q2 = QuestionNumerical(
-        question_name = "years",
-        question_text = "How many years have you been in school?"
-    )
-    q3 = QuestionFreeText(
-        question_name = "weekends",
-        question_text = "What do you do on weekends?"
-    )
-
-Adding questions to a survey
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Questions are added to a Survey object as a list of question ids:
-
-.. code-block:: python
-
-    from edsl.surveys import Survey
-
-    survey = Survey(questions=[q1, q2, q3])
-
-Alternatively, questions can be added to a Survey one at a time:
-
-.. code-block:: python
-
-    survey = Survey().add_question(q1).add_question(q2)
-    
-Applying survey rules
-^^^^^^^^^^^^^^^^^^^^^
-Rules are applied to a Survey with the `add_rule` and `add_stop_rule` methods which take a logical expression and the relevant questions.
-For example, the following rule specifies that if the response to q1 is "no" then the next question is q3 (a skip rule):
-
-.. code-block:: python
-    
-    survey = survey.add_rule(q1, "student == 'no'", q3)
-
-Here we apply a stop rule instead of a skip rule. If the response to q1 is "no", the survey will end after q1 is answered:
-
-.. code-block:: python
-
-    survey = survey.add_stop_rule(q1, "student == 'no'"))
-
-Writing conditional expressions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-The expressions themselves ()"student == 'no'") are written in Python.
-An expression is evaluated to True or False, with the answer substituted into the expression. 
-The placeholder for this answer is the name of the question itself. 
-In the examples, the answer to q1 is substituted into the expression "student == 'no'", 
-as the name of q1 is "student".
-
-Memory
-^^^^^^
-When an agent is taking a survey, they can be prompted to "remember" answers to previous questions.
-This can be done in several ways:
-
-* Full memory: The agent is given all of the answers to the questions in the survey.
-
-.. code-block:: python
-
-    s.set_full_memory_mode()
-
-Note that this is slow and token-intensive, as the questions must be answered serially and requires the agent to remember all of the answers to the questions in the survey.
-In contrast, if the agent does not need to remember all of the answers to the questions in the survey, execution can proceed in parallel.
-    
-* Lagged memory: With each question, the agent is given the answers to the specified number of lagged (prior) questions.
-In this example, the agent is given the answers to the 2 previous questions in the survey:
-
-.. code-block:: python
-
-    s.set_lagged_memory(2)
-
-* Targeted memory: The agent is given the answers to specific targeted prior questions.
-In this example, the agent is given the answer to q1 when prompted to to answer q2:
-
-.. code-block:: python
-
-    survey.add_targeted_memory(q2, q1)
-
-We can also use question names instead of question ids. The following example is equivalent to the previous one:
-
-.. code-block:: python
-
-    survey.add_targeted_memory("years", "student")
-
-This method can be applied multiple times to add prior answers to a given question.
-For example, we can add answers to both q1 and q2 when answering q3:
-
-.. code-block:: python
-
-    survey.add_memory_collection(q3, q1)
-    survey.add_memory_collection(q3, q2)
-
-    
-Running a survey
-^^^^^^^^^^^^^^^^
-Once constructed, a Survey can be `run`, creating a `Results` object:
-
-.. code-block:: python
-
-    results = survey.run()
-
-If question scenarios, agents or language models have been specified, they are added to the survey with the `by` method when running it:
-
-.. code-block:: python
-
-    results = survey.by(scenarios).by(agents).by(models).run()
-
-Note that these survey components can be chained in any order, so long as each type of component is chained at once (e.g., if adding multiple agents, use `by.(agents)` once where agents is a list of all Agent objects).
-
-Learn more about specifying question scenarios, agents and language models in their respective modules:
-
-* :ref:`scenarios`
-* :ref:`agents`
-* :ref:`language_models`
-
-Survey class methods
---------------------
-"""
+"""A Survey is collection of questions that can be administered to an Agent."""
 from __future__ import annotations
 import re
 from rich import print
@@ -161,7 +11,7 @@ from collections import UserDict
 
 from typing import Any, Generator, Optional, Union, List
 from edsl.exceptions import SurveyCreationError, SurveyHasNoRulesError
-from edsl.questions.Question import Question
+from edsl.questions.QuestionBase import QuestionBase
 from edsl.surveys.base import RulePriority, EndOfSurvey
 from edsl.surveys.Rule import Rule
 from edsl.surveys.RuleCollection import RuleCollection
@@ -207,7 +57,7 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
 
     def __init__(
         self,
-        questions: list[Question] = None,
+        questions: list[QuestionBase] = None,
         memory_plan: MemoryPlan = None,
         name: str = None,
         description: str = None,
@@ -229,7 +79,7 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
         # print("WARNING: name is deprecated. Please use meta_data.name instead.")
         return self.meta_data.name
 
-    def get_question(self, question_name) -> Question:
+    def get_question(self, question_name) -> QuestionBase:
         """Return the question object given the question name."""
         if question_name not in self.question_name_to_index:
             raise KeyError(f"Question name {question_name} not found in survey.")
@@ -260,7 +110,7 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
         return {q.question_name: i for i, q in enumerate(self.questions)}
 
     def add_question(
-        self, question: Question, question_name: Optional[str] = None
+        self, question: QuestionBase, question_name: Optional[str] = None
     ) -> Survey:
         """
         Add a question to survey.
@@ -323,7 +173,7 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
             )
 
     def add_targeted_memory(
-        self, focal_question: Union[Question, str], prior_question: Union[Question, str]
+        self, focal_question: Union[QuestionBase, str], prior_question: Union[QuestionBase, str]
     ) -> None:
         """Add instructions to a survey than when answering focal_question.
         
@@ -343,8 +193,8 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
 
     def add_memory_collection(
         self,
-        focal_question: Union[Question, str],
-        prior_questions: List[Union[Question, str]],
+        focal_question: Union[QuestionBase, str],
+        prior_questions: List[Union[QuestionBase, str]],
     ):
         """Add prior questions and responses so the agent has them when answering.
 
@@ -391,7 +241,7 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
             return self.question_name_to_index[question_name]
 
     def add_rule(
-        self, question: Question, expression: str, next_question: Question
+        self, question: QuestionBase, expression: str, next_question: QuestionBase
     ) -> Survey:
         """
         Add a rule to a Question of the Survey with the appropriate priority.
@@ -449,13 +299,13 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
     ## Survey-Taking Methods
     ########################
 
-    def first_question(self) -> Question:
+    def first_question(self) -> QuestionBase:
         """Return the first question in the survey."""
         return self.questions[0]
 
     def next_question(
         self, current_question: "Question", answers: dict
-    ) -> Union[Question, EndOfSurvey.__class__]:
+    ) -> Union[QuestionBase, EndOfSurvey.__class__]:
         """
         Return the next question in a survey.
 
@@ -485,7 +335,7 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
             else:
                 return self.questions[next_question_object.next_q]
 
-    def gen_path_through_survey(self) -> Generator[Question, dict, None]:
+    def gen_path_through_survey(self) -> Generator[QuestionBase, dict, None]:
         """
         Generate a coroutine that can be used to conduct an Interview.
 
@@ -584,7 +434,7 @@ class Survey(SurveyExportMixin, SurveyFlowVisualizationMixin, Base):
     @classmethod
     def from_dict(cls, data: dict) -> Survey:
         """Deserialize the dictionary back to a Survey object."""
-        questions = [Question.from_dict(q_dict) for q_dict in data["questions"]]
+        questions = [QuestionBase.from_dict(q_dict) for q_dict in data["questions"]]
         memory_plan = MemoryPlan.from_dict(data["memory_plan"])
         survey = cls(questions=questions, name=data["name"], memory_plan=memory_plan)
         survey.rule_collection = RuleCollection.from_dict(data["rule_collection"])
