@@ -47,9 +47,7 @@ class LanguageModelType(EnumWithChecks):
     ANTHROPIC_3_HAIKU = "claude-3-haiku-20240307"
     ANTHROPIC_2_1 = "claude-2-1"
     ANTHROPIC_2_0 = "claude-2-0"
-    ANTHROPIC_INSTANT_1_2= "claude-instant-1-2"
-
-
+    ANTHROPIC_INSTANT_1_2 = "claude-instant-1-2"
 
 
 class InferenceServiceType(EnumWithChecks):
@@ -74,6 +72,7 @@ service_to_api_keyname = {
     InferenceServiceType.ANTHROPIC.value: "ANTHROPIC_API_KEY",
 }
 
+
 class TokenPricing:
     def __init__(
         self,
@@ -95,36 +94,37 @@ class TokenPricing:
             and self.completion_token_price == other.completion_token_price
         )
 
+
 pricing = {
     "claude-3-opus-20240229": TokenPricing(
         model_name="claude-3-opus-20240229",
-        prompt_token_price_per_k=0.0,
-        completion_token_price_per_k=0.0,
+        prompt_token_price_per_k=0.015,
+        completion_token_price_per_k=0.075,
     ),
     "claude-3-sonnet-20240229": TokenPricing(
         model_name="claude-3-sonnet-20240229",
-        prompt_token_price_per_k=0.0,
-        completion_token_price_per_k=0.0,
+        prompt_token_price_per_k=0.003,
+        completion_token_price_per_k=0.015,
     ),
     "claude-3-haiku-20240307": TokenPricing(
         model_name="claude-3-haiku-20240307",
-        prompt_token_price_per_k=0.0,
-        completion_token_price_per_k=0.0,
+        prompt_token_price_per_k=0.00025,
+        completion_token_price_per_k=0.00125,
     ),
     "claude-2-1": TokenPricing(
         model_name="claude-2-1",
-        prompt_token_price_per_k=0.0,
-        completion_token_price_per_k=0.0,
+        prompt_token_price_per_k=0.008,
+        completion_token_price_per_k=0.024,
     ),
     "claude-2-0": TokenPricing(
         model_name="claude-2-0",
-        prompt_token_price_per_k=0.0,
-        completion_token_price_per_k=0.0,
+        prompt_token_price_per_k=0.008,
+        completion_token_price_per_k=0.024,
     ),
     "claude-instant-1-2": TokenPricing(
         model_name="claude-instant-1-2",
-        prompt_token_price_per_k=0.0,
-        completion_token_price_per_k=0.0,
+        prompt_token_price_per_k=0.0008,
+        completion_token_price_per_k=0.0024,
     ),
     "gpt-3.5-turbo": TokenPricing(
         model_name="gpt-3.5-turbo",

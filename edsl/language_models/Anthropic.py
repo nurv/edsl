@@ -9,6 +9,7 @@ from edsl.exceptions import MissingAPIKeyError
 
 from anthropic import AsyncAnthropic
 
+
 def create_anthropic_model(model_name, model_class_name) -> LanguageModel:
     class LLM(LanguageModel):
         """
@@ -18,7 +19,7 @@ def create_anthropic_model(model_name, model_class_name) -> LanguageModel:
         _inference_service_ = InferenceServiceType.ANTHROPIC.value
         _model_ = model_name
 
-        #TODO find the right values for this
+        # TODO find the right values for this
         _parameters_ = {
             "temperature": 0.5,
             "max_tokens": 1000,
@@ -26,16 +27,15 @@ def create_anthropic_model(model_name, model_class_name) -> LanguageModel:
             "frequency_penalty": 0,
             "presence_penalty": 0,
             "logprobs": False,
-            "top_logprobs": 3
+            "top_logprobs": 3,
         }
-
 
         async def async_execute_model_call(
             self, user_prompt: str, system_prompt: str = ""
         ) -> dict[str, Any]:
             """Calls the Antrhopic API and returns the API response."""
             api_key = os.environ.get("ANTHROPIC_API_KEY")
-            client = AsyncAnthropic(api_key = api_key)
+            client = AsyncAnthropic(api_key=api_key)
 
             response = await client.messages.create(
                 model=self.model,
@@ -44,13 +44,14 @@ def create_anthropic_model(model_name, model_class_name) -> LanguageModel:
                 system=system_prompt,
                 messages=[
                     {"role": "user", "content": user_prompt},
-                ])
+                ],
+            )
             return response.model_dump()
 
         @staticmethod
         def parse_response(raw_response: dict[str, Any]) -> str:
             """Parses the API response and returns the response text."""
-            response = raw_response["choices"][0]["message"]["content"]
+            response = raw_response["content"][0]["text"]
             pattern = r"^```json(?:\\n|\n)(.+?)(?:\\n|\n)```$"
             match = re.match(pattern, response, re.DOTALL)
             if match:
