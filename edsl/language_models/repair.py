@@ -11,7 +11,7 @@ async def async_repair(bad_json, error_message=""):
     It was supposed to respond with just a JSON object with an answer to a question and some commentary, 
     in a field called "comment" next to "answer".
     Please repair this bad JSON: {bad_json}."""
-
+    print("inside repair")
     if error_message:
         prompt += f" Parsing error message: {error_message}"
 
@@ -21,10 +21,12 @@ async def async_repair(bad_json, error_message=""):
             system_prompt="You are a helpful agent. Only return the repaired JSON, nothing else.",
         )
     except Exception as e:
+        print(e)
         return {}, False
 
     try:
-        valid_dict = json.loads(results["choices"][0]["message"]["content"])
+        # many times the repair response is correct and requires a parse_response only
+        valid_dict = json.loads(m.parse_response(results))
         success = True
     except json.JSONDecodeError:
         valid_dict = {}

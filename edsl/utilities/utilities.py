@@ -253,3 +253,18 @@ def shorten_string(s, max_length, placeholder="..."):
         end_remove = end_space
 
     return s[:start_remove] + placeholder + s[end_remove:]
+
+
+def extract_possible_json_content(text):
+    ct = 0
+    start = -1
+    for i in range(0, len(text)):
+        if text[i] == "{":
+            if ct == 0:
+                start = i
+            ct += 1
+        if text[i] == "}":
+            ct -= 1
+            if ct == 0:
+                return text[start : i + 1]
+    return None

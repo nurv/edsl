@@ -8,6 +8,7 @@ from edsl.language_models import LanguageModel
 from edsl.exceptions import MissingAPIKeyError
 
 LanguageModelType.GPT_4.value
+from edsl.utilities.utilities import extract_possible_json_content
 
 
 def create_openai_model(model_name, model_class_name) -> LanguageModel:
@@ -25,7 +26,7 @@ def create_openai_model(model_name, model_class_name) -> LanguageModel:
             "frequency_penalty": 0,
             "presence_penalty": 0,
             "logprobs": False,
-            "top_logprobs": 3
+            "top_logprobs": 3,
         }
 
         def get_headers(self) -> dict[str, Any]:
@@ -69,20 +70,23 @@ def create_openai_model(model_name, model_class_name) -> LanguageModel:
                     )
                 openai.api_key = os.getenv("OPENAI_API_KEY")
                 self.client = AsyncOpenAI()
-            response = await self.client.chat.completions.create(
-                model=self.model,
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-                temperature=self.temperature,
-                max_tokens=self.max_tokens,
-                top_p=self.top_p,
-                frequency_penalty=self.frequency_penalty,
-                presence_penalty=self.presence_penalty,
-                logprobs=self.logprobs,
-                top_logprobs=self.top_logprobs if self.logprobs else None,
-            )
+            try:
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": user_prompt},
+                    ],
+                    temperature=self.temperature,
+                    max_tokens=self.max_tokens,
+                    top_p=self.top_p,
+                    frequency_penalty=self.frequency_penalty,
+                    presence_penalty=self.presence_penalty,
+                    logprobs=self.logprobs,
+                    top_logprobs=self.top_logprobs if self.logprobs else None,
+                )
+            except Exception as e:
+                print(e)
             return response.model_dump()
 
         @staticmethod
@@ -91,10 +95,16 @@ def create_openai_model(model_name, model_class_name) -> LanguageModel:
             response = raw_response["choices"][0]["message"]["content"]
             pattern = r"^```json(?:\\n|\n)(.+?)(?:\\n|\n)```$"
             match = re.match(pattern, response, re.DOTALL)
+
             if match:
                 return match.group(1)
             else:
-                return response
+                # try a second method
+                match = extract_possible_json_content(response)
+                if match:
+                    return match
+
+            return response
 
     LLM.__name__ = model_class_name
 

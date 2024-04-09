@@ -8,6 +8,7 @@ from edsl.language_models import LanguageModel
 from edsl.exceptions import MissingAPIKeyError
 
 from anthropic import AsyncAnthropic
+from edsl.utilities.utilities import extract_possible_json_content
 
 
 def create_anthropic_model(model_name, model_class_name) -> LanguageModel:
@@ -36,7 +37,7 @@ def create_anthropic_model(model_name, model_class_name) -> LanguageModel:
             """Calls the Antrhopic API and returns the API response."""
             api_key = os.environ.get("ANTHROPIC_API_KEY")
             client = AsyncAnthropic(api_key=api_key)
-
+            print("calling anthropic api")
             response = await client.messages.create(
                 model=self.model,
                 max_tokens=1000,
@@ -52,10 +53,10 @@ def create_anthropic_model(model_name, model_class_name) -> LanguageModel:
         def parse_response(raw_response: dict[str, Any]) -> str:
             """Parses the API response and returns the response text."""
             response = raw_response["content"][0]["text"]
-            pattern = r"^```json(?:\\n|\n)(.+?)(?:\\n|\n)```$"
-            match = re.match(pattern, response, re.DOTALL)
+
+            match = extract_possible_json_content(response)
             if match:
-                return match.group(1)
+                return match
             else:
                 return response
 
