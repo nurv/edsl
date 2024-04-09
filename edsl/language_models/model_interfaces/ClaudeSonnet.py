@@ -1,17 +1,17 @@
 from edsl.language_models.Anthropic import create_anthropic_model
 from edsl.enums import LanguageModelType
 
-model_name = LanguageModelType.ANTHROPIC_3_OPUS.value
+model_name = LanguageModelType.ANTHROPIC_3_SONNET.value
 
-ClaudeOpus = create_anthropic_model(
-    model_name=model_name, model_class_name="ClaudeOpus"
+ClaudeSonnet = create_anthropic_model(
+    model_name=model_name, model_class_name="ClaudeSonnet"
 )
 
 if __name__ == "__main__":
 
     from edsl import QuestionMultipleChoice
-    from edsl.language_models import ClaudeOpus
+    from edsl.language_models import ClaudeSonnet
     q = QuestionMultipleChoice.example()
-    m = ClaudeOpus()
+    m = ClaudeSonnet()
     results = q.by(m).run()
     print(results)

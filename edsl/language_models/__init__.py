@@ -7,3 +7,9 @@ from edsl.language_models.model_interfaces.LanguageModelOpenAIFour import (
     LanguageModelOpenAIFour,
 )
 from edsl.language_models.model_interfaces.GeminiPro import GeminiPro
+from edsl.language_models.model_interfaces.ClaudeOpus import ClaudeOpus
+from edsl.language_models.model_interfaces.ClaudeSonnet import ClaudeSonnet
+from edsl.language_models.model_interfaces.ClaudeHaiku import ClaudeHaiku
+from edsl.language_models.model_interfaces.ClaudeTwoOne import ClaudeTwoOne
+from edsl.language_models.model_interfaces.ClaudeTwoZero import ClaudeTwoZero
+from edsl.language_models.model_interfaces.ClaudeInstantOneTwo import ClaudeInstantOneTwo
